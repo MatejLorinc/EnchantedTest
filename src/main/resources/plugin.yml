@@ -1,0 +1,8 @@
+name: EnchantedTest
+main: com.matejlorinc.enchanted.EnchantedTest
+version: 1.0
+author: matejlorinc.com
+api-version: 1.21
+commands:
+  spawnpig:
+  lockout:
