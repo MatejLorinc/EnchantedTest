@@ -1,6 +1,7 @@
 package com.matejlorinc.enchanted.entity;
 
 import com.matejlorinc.enchanted.EnchantedTest;
+import com.matejlorinc.enchanted.entity.combat.PigCombatListeners;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -18,6 +19,7 @@ public class PigManager {
         this.plugin = plugin;
 
         Bukkit.getPluginManager().registerEvents(new PlayerConnectionListeners(this), plugin);
+        Bukkit.getPluginManager().registerEvents(new PigCombatListeners(), plugin);
     }
 
     public CustomPig spawnPig(Player player) {

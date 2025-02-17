@@ -80,7 +80,7 @@ public class PigFollowOwnerGoal extends Goal {
         if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = this.adjustedTickDelay(10);
             if (shouldTeleport) {
-                Location location = getNearbyTelerportableLocation();
+                Location location = getNearbyTeleportableLocation();
                 if (location != null) {
                     entity.teleportTo(location.getX(), location.getY(), location.getZ());
                 }

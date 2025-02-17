@@ -1,5 +1,7 @@
 package com.matejlorinc.enchanted.entity;
 
+import com.matejlorinc.enchanted.entity.combat.goal.PigOwnerHurtTargetGoal;
+import com.matejlorinc.enchanted.entity.combat.goal.SingleMeleeAttackGoal;
 import com.matejlorinc.enchanted.entity.goal.PigFollowOwnerGoal;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -8,10 +10,13 @@ import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.player.Player;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 
 public class CustomPig extends Pig {
     private final PigManager manager;
@@ -26,17 +31,34 @@ public class CustomPig extends Pig {
         setPos(location.x(), location.y() + 0.2, location.z());
         ((CraftWorld) location.getWorld()).getHandle().addFreshEntity(this);
 
+        modifyAttributes();
+
         getBukkitEntity().setPersistent(false);
+    }
+
+    private void modifyAttributes() {
+        CraftLivingEntity bukkitLivingEntity = getBukkitLivingEntity();
+
+        bukkitLivingEntity.registerAttribute(Attribute.ATTACK_DAMAGE);
+        Objects.requireNonNull(bukkitLivingEntity.getAttribute(Attribute.ATTACK_DAMAGE)).setBaseValue(4.0);
     }
 
     @Override
     public void registerGoals() {
         goalSelector.addGoal(1, new FloatGoal(this));
 
+        registerCombatGoals();
+
         goalSelector.addGoal(4, new PigFollowOwnerGoal(this, 1.0, 5.0f, 1.5f));
         goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0));
         goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0f));
         goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+    }
+
+    private void registerCombatGoals() {
+        goalSelector.addGoal(2, new LeapAtTargetGoal(this, 0.4f));
+        goalSelector.addGoal(3, new SingleMeleeAttackGoal(this, 1.5));
+        targetSelector.addGoal(1, new PigOwnerHurtTargetGoal(this));
     }
 
     @Override
