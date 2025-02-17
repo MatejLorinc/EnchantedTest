@@ -1,5 +1,6 @@
 package com.matejlorinc.enchanted.entity;
 
+import com.matejlorinc.enchanted.EnchantedTest;
 import com.matejlorinc.enchanted.entity.combat.goal.PigOwnerHurtTargetGoal;
 import com.matejlorinc.enchanted.entity.combat.goal.SingleMeleeAttackGoal;
 import com.matejlorinc.enchanted.entity.goal.PigFollowOwnerGoal;
@@ -11,14 +12,17 @@ import net.minecraft.world.entity.player.Player;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
 public class CustomPig extends Pig {
+    private static final FileConfiguration config = JavaPlugin.getProvidingPlugin(EnchantedTest.class).getConfig();
     private final PigManager manager;
     private final Player owner;
     private PigLockout lockout;
@@ -39,8 +43,12 @@ public class CustomPig extends Pig {
     private void modifyAttributes() {
         CraftLivingEntity bukkitLivingEntity = getBukkitLivingEntity();
 
+        Objects.requireNonNull(bukkitLivingEntity.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(config.getDouble("speed"));
+        Objects.requireNonNull(bukkitLivingEntity.getAttribute(Attribute.MAX_HEALTH)).setBaseValue(config.getDouble("health"));
+
+
         bukkitLivingEntity.registerAttribute(Attribute.ATTACK_DAMAGE);
-        Objects.requireNonNull(bukkitLivingEntity.getAttribute(Attribute.ATTACK_DAMAGE)).setBaseValue(4.0);
+        Objects.requireNonNull(bukkitLivingEntity.getAttribute(Attribute.ATTACK_DAMAGE)).setBaseValue(config.getDouble("combat.damage"));
     }
 
     @Override
@@ -57,7 +65,7 @@ public class CustomPig extends Pig {
 
     private void registerCombatGoals() {
         goalSelector.addGoal(2, new LeapAtTargetGoal(this, 0.4f));
-        goalSelector.addGoal(3, new SingleMeleeAttackGoal(this, 1.5));
+        goalSelector.addGoal(3, new SingleMeleeAttackGoal(this, config.getDouble("combat.speed-multiplier")));
         targetSelector.addGoal(1, new PigOwnerHurtTargetGoal(this));
     }
 

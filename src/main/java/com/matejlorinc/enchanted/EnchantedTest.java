@@ -14,6 +14,8 @@ public class EnchantedTest extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+
         getCommand("spawnpig").setExecutor(new SpawnPigCommand(this));
         getCommand("lockout").setExecutor(new LockoutCommand(this));
 

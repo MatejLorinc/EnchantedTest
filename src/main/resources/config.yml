@@ -1,0 +1,5 @@
+speed: 0.3
+health: 20.0
+combat:
+  damage: 5.0
+  speed-multiplier: 1.5
