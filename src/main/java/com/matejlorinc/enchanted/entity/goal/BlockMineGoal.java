@@ -5,7 +5,7 @@ import com.matejlorinc.enchanted.entity.ability.block.BlockTarget;
 import com.matejlorinc.enchanted.entity.ability.block.PigBlockMineTask;
 import com.matejlorinc.enchanted.entity.ability.block.PigMineAbility;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.level.pathfinder.Path;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 
 import java.util.EnumSet;
@@ -15,9 +15,9 @@ public abstract class BlockMineGoal extends Goal {
     protected final PigMineAbility mineAbility;
     private final double speedModifier;
     protected PigBlockMineTask miningTask;
-    private Path path;
     private long lastCanUseCheck;
     private int ticksUntilNextPathRecalculation;
+    private int cantReachAttempts;
 
     public BlockMineGoal(CustomPig mob, PigMineAbility mineAbility, double speedModifier) {
         this.mob = mob;
@@ -46,14 +46,13 @@ public abstract class BlockMineGoal extends Goal {
 
     @Override
     public void start() {
-        this.mob.getNavigation().moveTo(this.path, this.speedModifier);
+        this.cantReachAttempts = 0;
         this.ticksUntilNextPathRecalculation = 0;
     }
 
     @Override
     public void stop() {
         this.miningTask = null;
-        this.path = null;
         this.mineAbility.setBlockTarget(null);
         this.mob.getNavigation().stop();
     }
@@ -69,30 +68,26 @@ public abstract class BlockMineGoal extends Goal {
         if (target == null) return;
 
         Block block = target.targetBlock();
+        Location targetLocation = target.targetLocation();
 
         this.mob.getLookControl().setLookAt(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5, 30.0F, 30.0F);
         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
 
         if (this.ticksUntilNextPathRecalculation > 0) return;
 
-        Path newPath = this.mob.getNavigation().createPath(target.locationBlockPos(), 0);
-        if (newPath == null || !newPath.canReach()) {
-            if (newPath == null || !newPath.canReach() || newPath.isDone()) {
-                stop();
-            }
+        boolean canReach = this.mob.getNavigation().moveTo(targetLocation.getX(), targetLocation.getY(), targetLocation.getZ(), this.speedModifier);
+        if (!canReach && miningTask == null) {
+            cantReachAttempts++;
+        } else {
+            cantReachAttempts = 0;
+        }
+        if (cantReachAttempts >= 10) {
+            stop();
             return;
         }
 
-        if (!newPath.sameAs(this.path)) {
-            this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
-            this.path = newPath;
-
-            if (!this.mob.getNavigation().moveTo(this.path, this.speedModifier)) {
-                this.ticksUntilNextPathRecalculation += 15;
-            }
-
-            this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
-        }
+        this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
+        this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
 
         this.checkAndPerformMine();
     }
@@ -106,6 +101,6 @@ public abstract class BlockMineGoal extends Goal {
     }
 
     private boolean canMineBlock() {
-        return this.mob.getBukkitEntity().getLocation().distance(this.mineAbility.getBlockTarget().targetLocation().clone().add(0.5, 0, 0.5)) <= 1.5;
+        return this.mob.getBukkitEntity().getLocation().distance(this.mineAbility.getBlockTarget().targetLocation().clone().add(0.5, 0, 0.5)) <= 2;
     }
 }
