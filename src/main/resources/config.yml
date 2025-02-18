@@ -18,3 +18,5 @@ farming:
   crops: [ "WHEAT", "POTATOES", "CARROTS", "BEETROOTS" ]
   search-radius: 8
   speed-multiplier: 1.0
+fishing:
+  speed-multiplier: 1.5

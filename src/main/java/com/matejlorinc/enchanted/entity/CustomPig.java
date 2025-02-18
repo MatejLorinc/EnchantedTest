@@ -6,6 +6,8 @@ import com.matejlorinc.enchanted.entity.ability.combat.goal.PigOwnerHurtTargetGo
 import com.matejlorinc.enchanted.entity.ability.combat.goal.SingleMeleeAttackGoal;
 import com.matejlorinc.enchanted.entity.ability.farming.PigFarmingAbility;
 import com.matejlorinc.enchanted.entity.ability.farming.goal.FarmingBlockMineGoal;
+import com.matejlorinc.enchanted.entity.ability.fishing.CatchingFish;
+import com.matejlorinc.enchanted.entity.ability.fishing.goal.CatchFishGoal;
 import com.matejlorinc.enchanted.entity.ability.mining.PigMiningAbility;
 import com.matejlorinc.enchanted.entity.ability.mining.goal.MiningBlockMineGoal;
 import com.matejlorinc.enchanted.entity.goal.PigFollowOwnerGoal;
@@ -21,6 +23,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -28,10 +32,12 @@ import java.util.Objects;
 
 public class CustomPig extends Pig {
     private static final FileConfiguration config = JavaPlugin.getProvidingPlugin(EnchantedTest.class).getConfig();
+    private static final Logger log = LoggerFactory.getLogger(CustomPig.class);
     private final PigManager manager;
     private final Player owner;
     private PigMineAbility miningAbility;
     private PigMineAbility farmingAbility;
+    private CatchingFish catchingFish;
     private PigLockout lockout;
 
     public CustomPig(PigManager manager, Player owner, Location location) {
@@ -60,11 +66,24 @@ public class CustomPig extends Pig {
 
     @Override
     public void registerGoals() {
-        goalSelector.addGoal(1, new FloatGoal(this));
+        goalSelector.addGoal(1, new FloatGoal(this) {
+            @Override
+            public boolean canUse() {
+                if (catchingFish != null) return false;
+                return super.canUse();
+            }
+
+            @Override
+            public boolean canContinueToUse() {
+                if (catchingFish != null) return false;
+                return super.canContinueToUse();
+            }
+        });
 
         registerCombatGoals();
         registerMiningGoals();
         registerFarmingGoals();
+        registerFishingGoals();
 
         goalSelector.addGoal(4, new PigFollowOwnerGoal(this, 1.0, 5.0f, 1.5f));
         goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0));
@@ -86,6 +105,10 @@ public class CustomPig extends Pig {
     private void registerFarmingGoals() {
         this.farmingAbility = new PigFarmingAbility(this, config);
         goalSelector.addGoal(2, new FarmingBlockMineGoal(this, config.getDouble("farming.speed-multiplier")));
+    }
+
+    private void registerFishingGoals() {
+        goalSelector.addGoal(2, new CatchFishGoal(this, config.getDouble("fishing.speed-multiplier")));
     }
 
     @Override
@@ -138,5 +161,37 @@ public class CustomPig extends Pig {
 
     public PigMineAbility getFarmingAbility() {
         return farmingAbility;
+    }
+
+    public CatchingFish getCatchingFish() {
+        return catchingFish;
+    }
+
+    public void setCatchingFish(CatchingFish catchingFish) {
+        this.catchingFish = catchingFish;
+    }
+
+    @Override
+    protected float getWaterSlowDown() {
+        if (catchingFish == null) return super.getWaterSlowDown();
+        return 1;
+    }
+
+    @Override
+    public boolean isPushedByFluid() {
+        if (catchingFish == null) return super.isPushedByFluid();
+        return false;
+    }
+
+    @Override
+    protected boolean isAffectedByFluids() {
+        if (catchingFish == null) return super.isAffectedByFluids();
+        return false;
+    }
+
+    @Override
+    protected int decreaseAirSupply(int currentAir) {
+        if (catchingFish == null) return super.decreaseAirSupply(currentAir);
+        return currentAir;
     }
 }

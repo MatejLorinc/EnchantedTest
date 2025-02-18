@@ -3,6 +3,7 @@ package com.matejlorinc.enchanted.entity;
 import com.matejlorinc.enchanted.EnchantedTest;
 import com.matejlorinc.enchanted.entity.ability.combat.PigCombatListeners;
 import com.matejlorinc.enchanted.entity.ability.farming.PigFarmingListeners;
+import com.matejlorinc.enchanted.entity.ability.fishing.PigFishingListeners;
 import com.matejlorinc.enchanted.entity.ability.mining.PigMiningListeners;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Bukkit;
@@ -24,6 +25,7 @@ public class PigManager {
         Bukkit.getPluginManager().registerEvents(new PigCombatListeners(), plugin);
         Bukkit.getPluginManager().registerEvents(new PigMiningListeners(this), plugin);
         Bukkit.getPluginManager().registerEvents(new PigFarmingListeners(this), plugin);
+        Bukkit.getPluginManager().registerEvents(new PigFishingListeners(this), plugin);
     }
 
     public CustomPig spawnPig(Player player) {
