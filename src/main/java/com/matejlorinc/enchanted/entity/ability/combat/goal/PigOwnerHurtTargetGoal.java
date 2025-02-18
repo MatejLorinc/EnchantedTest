@@ -1,4 +1,4 @@
-package com.matejlorinc.enchanted.entity.combat.goal;
+package com.matejlorinc.enchanted.entity.ability.combat.goal;
 
 import com.matejlorinc.enchanted.entity.CustomPig;
 import net.minecraft.world.entity.LivingEntity;

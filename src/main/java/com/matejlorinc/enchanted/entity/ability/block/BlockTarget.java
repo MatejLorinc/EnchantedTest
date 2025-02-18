@@ -1,4 +1,4 @@
-package com.matejlorinc.enchanted.entity.goal;
+package com.matejlorinc.enchanted.entity.ability.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.pathfinder.Path;

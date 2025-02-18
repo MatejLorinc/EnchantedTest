@@ -1,26 +1,27 @@
-package com.matejlorinc.enchanted.entity.mining.goal;
+package com.matejlorinc.enchanted.entity.goal;
 
 import com.matejlorinc.enchanted.entity.CustomPig;
-import com.matejlorinc.enchanted.entity.goal.BlockTarget;
-import com.matejlorinc.enchanted.entity.mining.PigMiningTask;
+import com.matejlorinc.enchanted.entity.ability.block.BlockTarget;
+import com.matejlorinc.enchanted.entity.ability.block.PigBlockMineTask;
+import com.matejlorinc.enchanted.entity.ability.block.PigMineAbility;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.pathfinder.Path;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import java.util.EnumSet;
-import java.util.List;
 
-public class MineBlockGoal extends Goal {
+public abstract class BlockMineGoal extends Goal {
     protected final CustomPig mob;
+    protected final PigMineAbility mineAbility;
     private final double speedModifier;
+    protected PigBlockMineTask miningTask;
     private Path path;
     private long lastCanUseCheck;
     private int ticksUntilNextPathRecalculation;
-    private PigMiningTask miningTask;
 
-    public MineBlockGoal(CustomPig mob, double speedModifier) {
+    public BlockMineGoal(CustomPig mob, PigMineAbility mineAbility, double speedModifier) {
         this.mob = mob;
+        this.mineAbility = mineAbility;
         this.speedModifier = speedModifier;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
@@ -32,21 +33,16 @@ public class MineBlockGoal extends Goal {
             return false;
 
         this.lastCanUseCheck = gameTime;
-        BlockTarget target = this.mob.getBlockTarget();
+        BlockTarget target = this.mineAbility.getBlockTarget();
         return isTargetValid(target);
     }
 
     @Override
     public boolean canContinueToUse() {
-        return isTargetValid(this.mob.getBlockTarget()) && (miningTask == null || !miningTask.isDone());
+        return isTargetValid(this.mineAbility.getBlockTarget()) && (miningTask == null || !miningTask.isDone());
     }
 
-    private boolean isTargetValid(BlockTarget target) {
-        if (target == null) return false;
-        List<Material> mineableBlockTypes = mob.getManager().getPlugin().getConfig().getStringList("mining.blocks")
-                .stream().map(Material::valueOf).toList();
-        return mineableBlockTypes.contains(target.targetBlock().getType());
-    }
+    protected abstract boolean isTargetValid(BlockTarget target);
 
     @Override
     public void start() {
@@ -58,7 +54,7 @@ public class MineBlockGoal extends Goal {
     public void stop() {
         this.miningTask = null;
         this.path = null;
-        this.mob.setBlockTarget(null);
+        this.mineAbility.setBlockTarget(null);
         this.mob.getNavigation().stop();
     }
 
@@ -69,7 +65,7 @@ public class MineBlockGoal extends Goal {
 
     @Override
     public void tick() {
-        BlockTarget target = this.mob.getBlockTarget();
+        BlockTarget target = this.mineAbility.getBlockTarget();
         if (target == null) return;
 
         Block block = target.targetBlock();
@@ -101,15 +97,15 @@ public class MineBlockGoal extends Goal {
         this.checkAndPerformMine();
     }
 
+    protected abstract void performMine();
+
     private void checkAndPerformMine() {
         if (this.canMineBlock() && this.miningTask == null) {
-            int breakDurationTicks = mob.getManager().getPlugin().getConfig().getInt("mining.break-duration");
-            this.miningTask = new PigMiningTask(this.mob, breakDurationTicks, this::stop);
-            this.miningTask.start();
+            performMine();
         }
     }
 
     private boolean canMineBlock() {
-        return this.mob.getBukkitEntity().getLocation().distance(this.mob.getBlockTarget().targetLocation().clone().add(0.5, 0, 0.5)) <= 1.5;
+        return this.mob.getBukkitEntity().getLocation().distance(this.mineAbility.getBlockTarget().targetLocation().clone().add(0.5, 0, 0.5)) <= 1.5;
     }
 }

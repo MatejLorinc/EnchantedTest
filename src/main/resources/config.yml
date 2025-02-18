@@ -10,3 +10,11 @@ mining:
   search-radius: 8
   break-duration: 100
   speed-multiplier: 1.0
+farming:
+  required-blocks: 10
+  reset-seconds: 60
+  blocks: [ "MELON", "PUMPKIN" ]
+  break-duration: 50
+  crops: [ "WHEAT", "POTATOES", "CARROTS", "BEETROOTS" ]
+  search-radius: 8
+  speed-multiplier: 1.0

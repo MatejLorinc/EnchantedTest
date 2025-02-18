@@ -1,4 +1,4 @@
-package com.matejlorinc.enchanted.entity.combat;
+package com.matejlorinc.enchanted.entity.ability.combat;
 
 import com.matejlorinc.enchanted.entity.CustomPig;
 import org.bukkit.craftbukkit.entity.CraftEntity;
@@ -11,7 +11,7 @@ public class PigCombatListeners implements Listener {
     public void onEntityTarget(EntityTargetEvent event) {
         if (event.getTarget() == null) return;
         if (!(((CraftEntity) event.getTarget()).getHandle() instanceof CustomPig)) return;
-        
+
         event.setCancelled(true);
     }
 }

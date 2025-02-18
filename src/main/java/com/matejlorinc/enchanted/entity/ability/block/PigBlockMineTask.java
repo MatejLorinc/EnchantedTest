@@ -1,4 +1,4 @@
-package com.matejlorinc.enchanted.entity.mining;
+package com.matejlorinc.enchanted.entity.ability.block;
 
 import com.matejlorinc.enchanted.entity.CustomPig;
 import net.minecraft.core.BlockPos;
@@ -14,23 +14,25 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Instant;
 
-public class PigMiningTask {
+public class PigBlockMineTask {
     public static final int MAX_BREAK_STAGE = 9;
     public static final int ANIMATION_SHOW_DISTANCE = 64;
     private final CustomPig entity;
+    private final PigMineAbility mineAbility;
     private final int durationTicks;
     private final Runnable finishCallback;
     private Instant start;
     private BukkitTask task;
 
-    public PigMiningTask(CustomPig entity, int durationTicks, Runnable finishCallback) {
+    public PigBlockMineTask(CustomPig entity, PigMineAbility mineAbility, int durationTicks, Runnable finishCallback) {
         this.entity = entity;
+        this.mineAbility = mineAbility;
         this.durationTicks = durationTicks;
         this.finishCallback = finishCallback;
     }
 
     public void start() {
-        Block block = entity.getBlockTarget().targetBlock();
+        Block block = mineAbility.getBlockTarget().targetBlock();
         int interval = durationTicks / MAX_BREAK_STAGE;
 
         this.start = Instant.now();
@@ -39,13 +41,13 @@ public class PigMiningTask {
 
             @Override
             public void run() {
-                if (entity.getBlockTarget() == null) {
+                if (mineAbility.getBlockTarget() == null) {
                     finishCallback.run();
                     cancel();
                     return;
                 }
 
-                block.getWorld().spawnParticle(Particle.BLOCK, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, block.getBlockData());
+                block.getWorld().spawnParticle(Particle.BLOCK, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.3, 0.3, 0.3, block.getBlockData());
                 if (stage > MAX_BREAK_STAGE) {
                     block.breakNaturally();
                     sendBlockBreakAnimation(block.getLocation(), -1);

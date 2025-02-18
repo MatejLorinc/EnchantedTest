@@ -1,13 +1,12 @@
-package com.matejlorinc.enchanted.entity.mining;
+package com.matejlorinc.enchanted.entity.ability.mining;
 
 import com.matejlorinc.enchanted.entity.CustomPig;
 import com.matejlorinc.enchanted.entity.PigManager;
-import org.bukkit.Material;
+import com.matejlorinc.enchanted.entity.ability.block.PigMineAbility;
+import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-
-import java.util.List;
 
 public class PigMiningListeners implements Listener {
     private final PigManager pigManager;
@@ -20,9 +19,10 @@ public class PigMiningListeners implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         CustomPig pig = pigManager.getPig(event.getPlayer().getUniqueId());
         if (pig == null) return;
-        List<Material> mineableBlockTypes = pigManager.getPlugin().getConfig().getStringList("mining.blocks")
-                .stream().map(Material::valueOf).toList();
-        if (!mineableBlockTypes.contains(event.getBlock().getType())) return;
-        pig.onPlayerMineBlock(event.getBlock());
+
+        Block block = event.getBlock();
+        PigMineAbility mineAbility = pig.getMiningAbility();
+        if (!mineAbility.isValidBlock(block)) return;
+        mineAbility.onPlayerMineBlock(block);
     }
 }

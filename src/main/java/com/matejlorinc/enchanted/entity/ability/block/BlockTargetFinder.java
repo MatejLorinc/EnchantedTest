@@ -1,11 +1,10 @@
-package com.matejlorinc.enchanted.entity.goal;
+package com.matejlorinc.enchanted.entity.ability.block;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.pathfinder.Path;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -13,9 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class BlockTargetFinder {
-    public static BlockTarget findTarget(PathfinderMob entity, List<Material> targetMaterials, int radius, Block ignoreBlock, boolean needsStandingLocation) {
+    public static BlockTarget findTarget(PathfinderMob entity, Function<Block, Boolean> blockValidator, int radius, Block ignoreBlock, boolean needsStandingLocation) {
         World world = entity.getBukkitEntity().getWorld();
         Location entityLocation = entity.getBukkitEntity().getLocation();
         List<Block> candidates = new ArrayList<>();
@@ -25,7 +25,7 @@ public class BlockTargetFinder {
                 for (int z = -radius; z <= radius; z++) {
                     Location loc = entityLocation.clone().add(x, y, z);
                     Block block = world.getBlockAt(loc);
-                    if (!targetMaterials.contains(block.getType())) continue;
+                    if (!blockValidator.apply(block)) continue;
                     if (block.getLocation().equals(ignoreBlock.getLocation())) continue;
                     candidates.add(block);
                 }
