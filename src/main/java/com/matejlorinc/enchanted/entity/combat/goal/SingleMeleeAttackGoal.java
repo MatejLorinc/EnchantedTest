@@ -28,32 +28,22 @@ public class SingleMeleeAttackGoal extends Goal {
     @Override
     public boolean canUse() {
         long gameTime = this.mob.level().getGameTime();
-        if (gameTime - this.lastCanUseCheck < 20L) {
-            return false;
-        } else {
-            this.lastCanUseCheck = gameTime;
-            LivingEntity target = this.mob.getTarget();
-            if (target == null) {
-                return false;
-            } else if (!target.isAlive()) {
-                return false;
-            } else {
-                this.path = this.mob.getNavigation().createPath(target, 0);
-                return this.path != null || this.mob.isWithinMeleeAttackRange(target);
-            }
-        }
+        if (gameTime - this.lastCanUseCheck < 20L) return false;
+
+        this.lastCanUseCheck = gameTime;
+        LivingEntity target = this.mob.getTarget();
+        if (target == null) return false;
+        else if (!target.isAlive()) return false;
+        this.path = this.mob.getNavigation().createPath(target, 0);
+        return this.path != null || this.mob.isWithinMeleeAttackRange(target);
     }
 
     @Override
     public boolean canContinueToUse() {
         LivingEntity target = this.mob.getTarget();
-        if (target == null) {
-            return false;
-        } else if (!target.isAlive()) {
-            return false;
-        } else {
-            return this.mob.isWithinRestriction(target.blockPosition()) && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target);
-        }
+        if (target == null) return false;
+        if (!target.isAlive()) return false;
+        return this.mob.isWithinRestriction(target.blockPosition()) && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target);
     }
 
     @Override
@@ -82,31 +72,30 @@ public class SingleMeleeAttackGoal extends Goal {
     @Override
     public void tick() {
         LivingEntity target = this.mob.getTarget();
-        if (target != null) {
-            this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
-            this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-            if (this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0 && this.pathedTargetY == 0.0 && this.pathedTargetZ == 0.0 || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0 || this.mob.getRandom().nextFloat() < 0.05F)) {
-                this.pathedTargetX = target.getX();
-                this.pathedTargetY = target.getY();
-                this.pathedTargetZ = target.getZ();
-                this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
-                double d = this.mob.distanceToSqr(target);
-                if (d > 1024.0) {
-                    this.ticksUntilNextPathRecalculation += 10;
-                } else if (d > 256.0) {
-                    this.ticksUntilNextPathRecalculation += 5;
-                }
+        if (target == null) return;
 
-                if (!this.mob.getNavigation().moveTo(target, this.speedModifier)) {
-                    this.ticksUntilNextPathRecalculation += 15;
-                }
-
-                this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
+        this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+        this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
+        if (this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0 && this.pathedTargetY == 0.0 && this.pathedTargetZ == 0.0 || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0 || this.mob.getRandom().nextFloat() < 0.05F)) {
+            this.pathedTargetX = target.getX();
+            this.pathedTargetY = target.getY();
+            this.pathedTargetZ = target.getZ();
+            this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
+            double d = this.mob.distanceToSqr(target);
+            if (d > 1024.0) {
+                this.ticksUntilNextPathRecalculation += 10;
+            } else if (d > 256.0) {
+                this.ticksUntilNextPathRecalculation += 5;
             }
 
-            this.checkAndPerformAttack(target);
+            if (!this.mob.getNavigation().moveTo(target, this.speedModifier)) {
+                this.ticksUntilNextPathRecalculation += 15;
+            }
+
+            this.ticksUntilNextPathRecalculation = this.adjustedTickDelay(this.ticksUntilNextPathRecalculation);
         }
 
+        this.checkAndPerformAttack(target);
     }
 
     private void checkAndPerformAttack(LivingEntity target) {
@@ -115,7 +104,6 @@ public class SingleMeleeAttackGoal extends Goal {
             this.mob.doHurtTarget(getServerLevel(this.mob), target);
             this.mob.setTarget(null);
         }
-
     }
 
     private boolean canPerformAttack(LivingEntity entity) {

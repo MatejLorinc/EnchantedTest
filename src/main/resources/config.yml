@@ -3,3 +3,10 @@ health: 20.0
 combat:
   damage: 5.0
   speed-multiplier: 1.5
+mining:
+  required-blocks: 10
+  reset-seconds: 60
+  blocks: [ "STONE", "COBBLESTONE" ]
+  search-radius: 8
+  break-duration: 100
+  speed-multiplier: 1.0
